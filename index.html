@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+      input {
+        font-size: 14px;
+        background-color: #fff;
+      }
+      .container {
+        background-color: white;
+        border: white;
+        flex-wrap: wrap;
+        display: flex;
+      }
+      .box {
+        background-color: red;
+      }
+      .bg {
+        width: 100px;
+        height: 100px;
+        border: black 1px solid;
+        box-sizing: border-box;
+        text-align: center;
+        line-height: 100px;
+      }
+      .space {
+        width: 100px;
+        height: 100px;
+        display: flex;
+        background-color: #fff;
+        border: black 1px solid;
+        line-height: 100px;
+        text-align: center;
+        box-sizing: border-box;
+      }
+      .nowbg {
+        background-color: aqua;
+      }
+    </style>
+  </head>
+
+  <body>
+    <input type="text" id="input" placeholder="數值" />
+    <button>開始</button>
+    <div class="container"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        $("button").click(() => {
+          $(".container").empty();
+
+          let num = 0;
+          let item = [];
+          let xynum = 0;
+          let step = 0;
+          let col = $("#input").val();
+          $(".container").css("width", `${col * 100}`);
+
+          for (let i = 0; i < col; i++) {
+            for (let j = 0; j < col; j++) {
+              if (i * j == (col - 1) * (col - 1)) {
+                item.push({
+                  number: num + 1,
+                  style: "space",
+                  space: true,
+                });
+                break;
+              } else {
+                item.push({
+                  number: num + 1,
+                  style: "bg",
+                });
+              }
+              num++;
+            }
+          }
+          //打亂
+          shuffle(item);
+
+          console.log(item);
+          item.forEach((num, index) => {
+            template = `<div class="${num.style} box" id="${num.number}">${
+              num.number == col * col ? "" : num.number
+            }</div>`;
+            $(".container").append(template);
+          });
+
+          for (let i = 0; i < col; i++) {
+            for (let j = 0; j < col; j++) {
+              item[xynum].x = i;
+              item[xynum].y = j;
+              if (xynum == col * col) break;
+              xynum++;
+            }
+          }
+
+          let tiles = [];
+          $(".container")
+            .children()
+            .each(function () {
+              tiles.push($(this).text());
+            });
+
+          tiles.forEach((el, index) => {
+            let addcol =
+              parseInt(tiles[index] * 1, 10) === 0
+                ? col * col
+                : parseInt(tiles[index] * 1);
+            return tiles.push(addcol);
+          });
+
+          tiles.splice(0, col * col);
+
+          //https://www.cnblogs.com/weiyinfu/p/5911340.html
+          const checkResolvable = function (ary, col) {
+            let count = 0;
+            let space = 0;
+
+            ary = ary.filter((item, index) => {
+              if (item === null) space = (index % col) + 1;
+              return item != ary.length;
+            });
+
+            ary.forEach((item, index, ary) => {
+              let j = index + 1;
+              while (j < ary.length) {
+                if (item > ary[j]) count++;
+                j++;
+              }
+            });
+            return col % 2 ? count % 2 === 0 : (count % 2) + (space % 2) === 0;
+            //true => 基數
+          };
+          console.log(checkResolvable(tiles, col));
+
+          if (checkResolvable(tiles, col) == false) {
+            alertall("無解請重新點擊開始");
+          }
+
+          $(".box").click(function () {
+            if ($(this).hasClass("space")) {
+              console.log("space");
+            }
+            let id = parseFloat($(this).attr("id"));
+            let temp = "";
+            let index = 1;
+            let win = 0;
+            let domtext = [];
+            let nowlocation = [
+              item.find((location) => location.number === id).x,
+              item.find((location) => location.number === id).y,
+            ];
+            let [x, y] = nowlocation;
+            console.log(x, y);
+            let right = item.findIndex(
+              (item) => item.x == x && item.y == y + 1
+            );
+            let left = item.findIndex(
+              (item) => item.x == x && item.y == y - 1 && y > 0
+            );
+            let up = item.findIndex(
+              (item) => item.x == x - 1 && item.y == y && x > 0
+            );
+            let down = item.findIndex((item) => item.x == x + 1 && item.y == y);
+
+            console.log(item);
+            // console.log(`right:${item[right]} left:${item[left]}`);
+            // console.log(`up:${item[up]} down:${item[down]}`);
+            if (right >= 0) {
+              if ($("#" + item[right].number).hasClass("space")) {
+                $("#" + item[right].number).addClass("bg");
+                $("#" + item[right].number).removeClass("space");
+                $(this).addClass("space");
+                $(this).removeClass("bg");
+                $("#" + item[right].number).html($(this).text());
+                $(this).html("");
+                step++;
+              }
+            }
+            if (left >= 0) {
+              if ($("#" + item[left].number).hasClass("space")) {
+                $("#" + item[left].number).addClass("bg");
+                $("#" + item[left].number).removeClass("space");
+                $(this).addClass("space");
+                $(this).removeClass("bg");
+                $("#" + item[left].number).html($(this).text());
+                $(this).html("");
+                step++;
+              }
+            }
+            if (up >= 0) {
+              if ($("#" + item[up].number).hasClass("space")) {
+                $("#" + item[up].number).addClass("bg");
+                $("#" + item[up].number).removeClass("space");
+                $(this).addClass("space");
+                $(this).removeClass("bg");
+                $("#" + item[up].number).html($(this).text());
+                $(this).html("");
+                step++;
+              }
+            }
+            if (down >= 0) {
+              if ($("#" + item[down].number).hasClass("space")) {
+                $("#" + item[down].number).addClass("bg");
+                $("#" + item[down].number).removeClass("space");
+                $(this).addClass("space");
+                $(this).removeClass("bg");
+                $("#" + item[down].number).html($(this).text());
+                $(this).html("");
+                step++;
+              }
+            }
+
+            console.log(step);
+            let nowarray = [];
+            $(".container")
+              .children()
+              .each(function () {
+                nowarray.push($(this).text());
+              });
+            // console.log(nowarray);
+
+            nowarray.forEach((el, index) => {
+              let nowcheck =
+                parseInt(nowarray[index] * 1, 10) === 0
+                  ? col * col
+                  : parseInt(nowarray[index] * 1);
+              let itemcheck = item[index].x * col + item[index].y + 1;
+
+              // console.log(nowcheck);
+              if (nowcheck !== itemcheck) return false;
+              win++;
+              // console.log(win);
+              // console.log(itemcheck)
+            });
+            if (win == col * col) {
+              alertall("win", `${step}步`);
+            }
+          });
+        });
+
+        function shuffle(array) {
+          for (let i = array.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+          }
+        }
+
+        function alertall(msg, step = "") {
+          setTimeout(() => {
+            alert(`${msg} ${step}`);
+          }, 1000);
+        }
+      });
+    </script>
+  </body>
+</html>
